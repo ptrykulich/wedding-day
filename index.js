@@ -87,35 +87,53 @@
 
   /* ---------------------------------------------------------------------
      Add to calendar
-     Android → Google Calendar template link (opens the app / web form)
-     iOS / desktop → static wedding.ics (two events: ceremony + dinner)
+     A plain link to the .ics file gets *downloaded* on phones instead of
+     opening the calendar, so the button offers explicit choices:
+       Google  — the calendar template URL (opens the app on Android)
+       Apple   — webcal://, which iOS / macOS hand straight to Calendar
+       .ics    — plain download for Outlook and everything else
      --------------------------------------------------------------------- */
   function setupCalendar() {
-    var btn = document.getElementById('add-to-calendar');
-    if (!btn) return;
-    if (!/Android/i.test(navigator.userAgent)) return; // keep .ics link as is
+    var toggle = document.getElementById('cal-toggle');
+    var panel = document.getElementById('cal-options');
+    var google = document.getElementById('cal-google');
+    var apple = document.getElementById('cal-apple');
+    if (!toggle || !panel) return;
 
     var title = encodeURIComponent('Весілля Павла та Лізи');
     var details = encodeURIComponent(
       '16:00 — Церемонія, Центральний РАГС\nhttps://maps.app.goo.gl/GhsCVwM5nMNz5PEAA\n\n' +
       '17:00 — Святкова вечеря, Elissa Bar&Restaurant\nhttps://maps.app.goo.gl/mZnmKt7e6aQjSAtSA'
     );
-    var location = encodeURIComponent('Центральний РАГС');
-    btn.href = 'https://calendar.google.com/calendar/render?action=TEMPLATE' +
-      '&text=' + title +
-      '&dates=20260911T130000Z/20260911T210000Z' +
-      '&details=' + details +
-      '&location=' + location +
-      '&ctz=Europe/Kyiv';
-    btn.target = '_blank';
-    btn.rel = 'noopener';
+    var place = encodeURIComponent('Центральний РАГС');
+    if (google) {
+      google.href = 'https://calendar.google.com/calendar/render?action=TEMPLATE' +
+        '&text=' + title +
+        '&dates=20260911T130000Z/20260911T210000Z' +
+        '&details=' + details +
+        '&location=' + place +
+        '&ctz=Europe/Kyiv';
+    }
+    if (apple && window.location.host) {
+      var dir = window.location.pathname.replace(/[^/]*$/, '');
+      apple.href = 'webcal://' + window.location.host + dir + 'wedding.ics';
+    }
+
+    function setOpen(open) {
+      panel.hidden = !open;
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+    toggle.addEventListener('click', function () { setOpen(panel.hidden); });
+    document.addEventListener('click', function (e) {
+      if (!panel.hidden && !panel.contains(e.target) && !toggle.contains(e.target)) setOpen(false);
+    });
   }
 
   /* ---------------------------------------------------------------------
-     Background music
-     Browsers block sound until the visitor interacts with the page, so:
-     try to start right away → if blocked, start on the first tap / click.
-     The corner button toggles it; an explicit "off" is remembered.
+     Background music — on by default
+     Phones refuse to start audio before the visitor interacts with the
+     page, so we try immediately AND keep listening for the first gesture
+     until playback actually succeeds. Only an explicit "off" is remembered.
      --------------------------------------------------------------------- */
   function setupMusic() {
     var audio = document.getElementById('bg-music');
@@ -127,6 +145,7 @@
     try { userOff = localStorage.getItem(KEY) === 'off'; } catch (e) {}
 
     var TARGET_VOL = 0.55;
+    var fadeTimer = null;
     audio.volume = 0;
     btn.hidden = false;
 
@@ -137,52 +156,61 @@
     }
 
     function fadeIn() {
+      clearInterval(fadeTimer);
       var v = audio.volume;
-      var timer = setInterval(function () {
+      fadeTimer = setInterval(function () {
         v = Math.min(TARGET_VOL, v + 0.05);
-        audio.volume = v;                 // iOS ignores volume — harmless
-        if (v >= TARGET_VOL || audio.paused) clearInterval(timer);
-      }, 120);
+        audio.volume = v;              // iOS ignores volume — harmless
+        if (v >= TARGET_VOL || audio.paused) clearInterval(fadeTimer);
+      }, 100);
     }
 
-    function play() {
+    var GESTURES = ['pointerdown', 'touchend', 'click', 'keydown'];
+    var armed = false;
+    function onGesture(e) {
+      if (e && e.target && btn.contains(e.target)) return;  // button handles itself
+      tryPlay();
+    }
+    function arm() {
+      if (armed || userOff) return;
+      armed = true;
+      GESTURES.forEach(function (g) { document.addEventListener(g, onGesture, true); });
+    }
+    function disarm() {
+      if (!armed) return;
+      armed = false;
+      GESTURES.forEach(function (g) { document.removeEventListener(g, onGesture, true); });
+    }
+
+    function tryPlay() {
       var p = audio.play();
-      if (p && typeof p.then === 'function') {
-        return p.then(function () { setState(true); fadeIn(); return true; },
-                      function () { setState(false); return false; });
+      if (!p || typeof p.then !== 'function') {
+        var ok = !audio.paused;
+        if (ok) { disarm(); setState(true); fadeIn(); }
+        return Promise.resolve(ok);
       }
-      setState(!audio.paused);
-      return Promise.resolve(!audio.paused);
+      return p.then(function () {
+        disarm(); setState(true); fadeIn(); return true;
+      }, function () {
+        setState(false); arm(); return false;   // stay armed for the next gesture
+      });
     }
 
     function stop() {
+      clearInterval(fadeTimer);
       audio.pause();
       audio.volume = 0;
       setState(false);
     }
 
-    // Start on first interaction anywhere on the page (once).
-    var gestures = ['pointerdown', 'touchend', 'keydown'];
-    function onFirstGesture(e) {
-      if (e && e.target && btn.contains(e.target)) return; // button handles itself
-      removeGestures();
-      if (!userOff) play();
-    }
-    function removeGestures() {
-      gestures.forEach(function (g) { document.removeEventListener(g, onFirstGesture, true); });
-    }
-    function armGestures() {
-      gestures.forEach(function (g) { document.addEventListener(g, onFirstGesture, true); });
-    }
-
     btn.addEventListener('click', function () {
-      removeGestures();
       if (audio.paused) {
         userOff = false;
         try { localStorage.removeItem(KEY); } catch (e) {}
-        play();
+        tryPlay();
       } else {
         userOff = true;
+        disarm();
         try { localStorage.setItem(KEY, 'off'); } catch (e) {}
         stop();
       }
@@ -191,8 +219,8 @@
     setState(false);
     if (userOff) return;
 
-    // Autoplay attempt; if the browser refuses, wait for a gesture.
-    play().then(function (ok) { if (!ok) armGestures(); });
+    arm();      // listen from the very first moment — no gap to miss a tap
+    tryPlay();  // and still try to start on our own
   }
 
   renderGreeting();

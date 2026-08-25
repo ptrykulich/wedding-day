@@ -10,7 +10,11 @@
   <meta property="og:description" content="11 вересня 2026. Церемонія о 16:00, святкова вечеря о 17:00.">
   <meta property="og:type" content="website">
 <meta property="og:image" content="assets/images/couple.jpg">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%2355603f'/%3E%3Ctext x='50' y='62' text-anchor='middle' font-family='serif' font-style='italic' font-size='34' fill='%23f5f1e4'%3EP%26L%3C/text%3E%3C/svg%3E">
+  <link rel="icon" href="favicon.ico" sizes="32x32">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="assets/icons/favicon-16.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="assets/icons/icon-192.png">
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Jost:wght@300;400;500&family=Monsieur+La+Doulaise&family=Pinyon+Script&display=swap" rel="stylesheet">
@@ -96,7 +100,14 @@
         </li>
       </ol>
 
-      <a class="btn program__btn" id="add-to-calendar" href="wedding.ics">Додати в календар</a>
+      <div class="cal">
+        <button class="btn" id="cal-toggle" type="button" aria-expanded="false" aria-controls="cal-options">Додати в календар</button>
+        <div class="cal__options" id="cal-options" hidden>
+          <a class="cal__opt" id="cal-google" href="https://calendar.google.com/" target="_blank" rel="noopener">Google Календар</a>
+          <a class="cal__opt" id="cal-apple" href="wedding.ics">Apple Календар</a>
+          <a class="cal__opt cal__opt--file" id="cal-ics" href="wedding.ics" download="wedding-pavlo-liza.ics">Інший застосунок (.ics)</a>
+        </div>
+      </div>
     </section>
 
     <!-- DRESS CODE -->
