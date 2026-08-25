@@ -1,0 +1,13 @@
+# macOS
+.DS_Store
+
+# Editors
+.vscode/
+.idea/
+*.swp
+
+# Claude Design working folder — design source, not part of the site
+Claude Design/
+
+# Unoptimized source media (the site serves assets/music.m4a)
+*.mov
