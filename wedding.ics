@@ -1,0 +1,30 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Pavlo & Liza Wedding//UA
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+X-WR-CALNAME:Весілля Павла та Лізи
+BEGIN:VEVENT
+UID:ceremony-2026-09-11@pavlo-liza.wedding
+DTSTAMP:20260825T120000Z
+DTSTART:20260911T130000Z
+DTEND:20260911T140000Z
+SUMMARY:Весілля Павла та Лізи — Церемонія
+LOCATION:Центральний РАГС
+DESCRIPTION:16:00 — Церемонія\, Центральний РАГС
+ \nМапа: https://maps.app.goo.gl/GhsCVwM5nMNz5PEAA
+URL:https://maps.app.goo.gl/GhsCVwM5nMNz5PEAA
+END:VEVENT
+BEGIN:VEVENT
+UID:dinner-2026-09-11@pavlo-liza.wedding
+DTSTAMP:20260825T120000Z
+DTSTART:20260911T140000Z
+DTEND:20260911T210000Z
+SUMMARY:Весілля Павла та Лізи — Святкова веч
+ еря
+LOCATION:Elissa Bar&Restaurant
+DESCRIPTION:17:00 — Святкова вечеря\, Elissa Bar&Restaurant
+ \nМапа: https://maps.app.goo.gl/mZnmKt7e6aQjSAtSA
+URL:https://maps.app.goo.gl/mZnmKt7e6aQjSAtSA
+END:VEVENT
+END:VCALENDAR
